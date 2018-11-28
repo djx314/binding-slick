@@ -58,7 +58,7 @@ class SlickBlockingAPISpec extends FunSuite {
           count1 <- Query(Users.length).doobieQuery.unique
           result1 <- Users.sortBy(_.id).doobieQuery.to[List]
         } yield {
-          assert(count1 == 4)
+          assert(count1 == 3)
           assert(result1.length == 3)
           assert(result1(0) == UsersRow(1, "takezoe", None))
           assert(result1(1) == UsersRow(2, "chibochibo", None))
