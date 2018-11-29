@@ -1,10 +1,8 @@
 package com.github.takezoe.slick.blocking
 
-import org.scalatest.FunSuite
+import org.scalatest.{Assertion, FunSuite}
 import slick.jdbc.meta.MTable
-
 import doobie._
-
 import cats._
 import cats.effect._
 import doobie.h2._
@@ -18,6 +16,7 @@ class SlickBlockingAPISpec extends FunSuite {
     import cats.implicits._
 
     implicit val cs = IO.contextShift(ExecutionContext.global)
+
     for {
       ce <- ExecutionContexts.fixedThreadPool[IO](32) // our connect EC
       te <- ExecutionContexts.cachedThreadPool[IO]    // our transaction EC
@@ -29,6 +28,7 @@ class SlickBlockingAPISpec extends FunSuite {
         te // execute JDBC operations here
       )
     } yield xa
+
   }
 
   object Tables extends {
@@ -44,7 +44,7 @@ class SlickBlockingAPISpec extends FunSuite {
     import cats.implicits._
 
     db.withSession { implicit session =>
-      Tables.schema.create
+      //Tables.schema.create
 
       val insert = Users.doobieInsert
 
@@ -52,11 +52,12 @@ class SlickBlockingAPISpec extends FunSuite {
 
       val rows: Int = transactor.use { xa =>
         (for {
-          i1 <- insert.run(UsersRow(1, "takezoe", None))
-          i2 <- insert.run(UsersRow(2, "chibochibo", None))
-          i3 <- insert.run(UsersRow(3, "tanacasino", None))
-          count1 <- Query(Users.length).doobieQuery.unique
-          result1 <- Users.sortBy(_.id).doobieQuery.to[List]
+          (_: Int) <- Tables.schema.doobieCreate
+          i1       <- insert.run(UsersRow(1, "takezoe", None))
+          i2       <- insert.run(UsersRow(2, "chibochibo", None))
+          i3       <- insert.run(UsersRow(3, "tanacasino", None))
+          count1   <- Query(Users.length).doobieQuery.unique
+          result1  <- Users.sortBy(_.id).doobieQuery.to[List]
         } yield {
           assert(count1 == 3)
           assert(result1.length == 3)
@@ -105,52 +106,89 @@ class SlickBlockingAPISpec extends FunSuite {
         }.unsafeRunSync
       assert(count2 == 2)
 
-      Tables.schema.remove
+      //Tables.schema.remove
+
+      transactor.use { xa =>
+        Tables.schema.doobieDrop.transact(xa)
+      }.unsafeRunSync
     }
   }
 
   test("Plain SQL") {
-    db.withSession { implicit session =>
-      Tables.schema.create
+    db.withSession { implicit session => //Tables.schema.create
 
-      // plain sql
-      val id1     = 1
-      val name1   = "takezoe"
-      val insert1 = sqlu"INSERT INTO USERS (ID, NAME) VALUES (${id1}, ${name1})"
-      insert1.execute
+    {
+      import doobie.implicits._
+      import cats.implicits._
 
-      val query  = sql"SELECT COUNT(*) FROM USERS".as[Int]
-      val count1 = query.first
-      assert(count1 == 1)
+      transactor.use { xa =>
+        Tables.schema.doobieCreate.transact(xa)
+      }.unsafeRunSync
+    }
 
-      val id2     = 2
-      val name2   = "chibochibo"
-      val insert2 = sqlu"INSERT INTO USERS (ID, NAME) VALUES (${id2}, ${name2})"
-      insert2.execute
+    // plain sql
+    val id1     = 1
+    val name1   = "takezoe"
+    val insert1 = sqlu"INSERT INTO USERS (ID, NAME) VALUES (${id1}, ${name1})"
+    insert1.execute
 
-      val count2 = query.first
-      assert(count2 == 2)
+    val query  = sql"SELECT COUNT(*) FROM USERS".as[Int]
+    val count1 = query.first
+    assert(count1 == 1)
 
-      Tables.schema.remove
+    val id2     = 2
+    val name2   = "chibochibo"
+    val insert2 = sqlu"INSERT INTO USERS (ID, NAME) VALUES (${id2}, ${name2})"
+    insert2.execute
+
+    val count2 = query.first
+    assert(count2 == 2)
+
+    //Tables.schema.remove
+
+    import doobie.implicits._
+    import cats.implicits._
+
+    transactor.use { xa =>
+      Tables.schema.doobieDrop.transact(xa)
+    }.unsafeRunSync
     }
   }
 
   test("exists") {
     import doobie.implicits._
+    import cats.implicits._
 
-    db.withSession { implicit session =>
-      Tables.schema.create
+    //db.withSession { implicit session =>
+    //Tables.schema.create
 
-      val exists1 = Users.filter(_.id === 1L.bind).filter(_.name === "takezoe".bind).exists.run
-      assert(exists1 == false)
+    /*transactor.use { xa =>
+      Tables.schema.doobieCreate.transact(xa)
+    }.unsafeRunSync*/
 
-      //Users.insert(UsersRow(1, "takezoe", None))
+    val insert = Users.doobieInsert
 
-      val insert = Users.doobieInsert
+    transactor.use { xa =>
+      val action1 = Tables.schema.doobieCreate.transact(xa)
+      val assertion2: IO[Assertion] = Users.filter(_.id === 1L.bind).filter(_.name === "takezoe".bind).exists.doobieQuery.unique.transact(xa) >>= {
+        (exists1: Boolean) =>
+          IO.pure(assert(exists1 == false))
+      }
 
-      // Insert
+      val action3 = insert.run(UsersRow(1, "takezoe", None)).transact(xa)
+      val assertion4: IO[Assertion] = Users.filter(_.id === 1L.bind).filter(_.name === "takezoe".bind).exists.doobieQuery.unique.transact(xa) >>= { exists2 =>
+        IO.pure(assert(exists2 == true))
+      }
+      val action6 = Tables.schema.doobieDrop.transact(xa)
 
-      val rows: Int = transactor.use { xa =>
+      action1 >> assertion2 >> action3 >> assertion4 >> action6
+    }.unsafeRunSync
+
+    //Users.insert(UsersRow(1, "takezoe", None))
+
+    // Insert
+
+    /*val rows: Int = transactor.use { xa =>
         (for {
           i1 <- insert.run(UsersRow(1, "takezoe", None))
         } yield {
@@ -158,36 +196,66 @@ class SlickBlockingAPISpec extends FunSuite {
         }).transact(xa)
       }.unsafeRunSync
 
-      val exists2 = Users.filter(_.id === 1L.bind).filter(_.name === "takezoe".bind).exists.run
-      assert(exists2 == true)
+      val exists2 = transactor.use { xa =>
+        Users.filter(_.id === 1L.bind).filter(_.name === "takezoe".bind).exists.doobieQuery.unique.transact(xa)
+      }.unsafeRunSync
+      assert(exists2 == true)*/
 
-      Tables.schema.remove
-    }
+    //Tables.schema.remove
+
+    /*transactor.use { xa =>
+        Tables.schema.doobieDrop.transact(xa)
+      }.unsafeRunSync*/
+    //}
   }
 
   test("sum") {
     db.withSession { implicit session =>
-      Tables.schema.create
+      import doobie.implicits._
 
-      val sum = Users.map(_.id).sum.run
+      //Tables.schema.create
+
+      transactor.use { xa =>
+        Tables.schema.doobieCreate.transact(xa)
+      }.unsafeRunSync
+
+      val sum = transactor.use { xa =>
+        Users.map(_.id).sum.doobieQuery.unique.transact(xa)
+      }.unsafeRunSync
       assert(sum == None)
 
-      Tables.schema.remove
+      //Tables.schema.remove
+
+      transactor.use { xa =>
+        Tables.schema.doobieDrop.transact(xa)
+      }.unsafeRunSync
     }
   }
 
   test("run") {
     db.withSession { implicit session =>
-      Tables.schema.create
-      assert(Users.run.length == 0)
+      //Tables.schema.create
+      import doobie.implicits._
+
+      transactor.use { xa =>
+        Tables.schema.doobieCreate.transact(xa)
+      }.unsafeRunSync
+      assert(transactor.use { xa =>
+        Users.doobieQuery.to[List].map(_.length).transact(xa)
+      }.unsafeRunSync == 0)
     }
   }
 
   test("insertAll") {
     import doobie.implicits._
+    import cats.implicits._
 
     db.withSession { implicit session =>
-      Tables.schema.create
+      //Tables.schema.create
+
+      transactor.use { xa =>
+        Tables.schema.doobieCreate.transact(xa)
+      }.unsafeRunSync
 
       val users = List(
           UsersRow(1, "takezoe", None)
@@ -195,17 +263,22 @@ class SlickBlockingAPISpec extends FunSuite {
         , UsersRow(3, "tanacasino", None)
       )
 
-      Users.insertAll(users: _*)
       val count1 = //Query(Users.length).first
         transactor.use { xa =>
-          Query(Users.length).doobieQuery.unique.transact(xa)
+          for {
+            (_: Int) <- Users.doobieInsert.updateMany(users).transact(xa)
+            num      <- Query(Users.length).doobieQuery.unique.transact(xa)
+          } yield num
         }.unsafeRunSync
       assert(count1 == 3)
 
-      Users ++= users
+      //Users ++= users
       val count2 = //Query(Users.length).first
         transactor.use { xa =>
-          Query(Users.length).doobieQuery.unique.transact(xa)
+          for {
+            (_: Int) <- Users.doobieInsert.updateMany(users).transact(xa)
+            num      <- Query(Users.length).doobieQuery.unique.transact(xa)
+          } yield num
         }.unsafeRunSync
       assert(count2 == 6)
     }
@@ -213,39 +286,66 @@ class SlickBlockingAPISpec extends FunSuite {
 
   test("insert returning") {
     db.withSession { implicit session =>
-      Tables.schema.create
+      import doobie.implicits._
+      //Tables.schema.create
+
+      transactor.use { xa =>
+        Tables.schema.doobieCreate.transact(xa)
+      }.unsafeRunSync
 
       val id = Users.returning(Users.map(_.id)) insert UsersRow(1, "takezoe", None)
       assert(id == 1)
-      assert(Users.length.run == 1)
+      assert(transactor.use { xa =>
+        Users.doobieQuery.to[List].map(_.length).transact(xa)
+      }.unsafeRunSync == 1)
       val u = (Users.returning(Users.map(_.id)).into((u, id) => u.copy(id = id))) insert UsersRow(2, "takezoe", None)
       assert(u.id == 2)
-      assert(Users.length.run == 2)
+      assert(transactor.use { xa =>
+        Users.doobieQuery.to[List].map(_.length).transact(xa)
+      }.unsafeRunSync == 2)
     }
 
   }
 
   test("insert multiple returning") {
     db.withSession { implicit session =>
-      Tables.schema.create
+      import doobie.implicits._
+      //Tables.schema.create
+
+      transactor.use { xa =>
+        Tables.schema.doobieCreate.transact(xa)
+      }.unsafeRunSync
 
       val id = Users.returning(Users.map(_.id)) insertAll (UsersRow(1, "takezoe", None), UsersRow(2, "mrfyda", None))
       assert(id == List(1, 2))
-      assert(Users.length.run == 2)
+      assert(transactor.use { xa =>
+        Users.doobieQuery.to[List].map(_.length).transact(xa)
+      }.unsafeRunSync == 2)
       val u = (Users.returning(Users.map(_.id)).into((u, id) => u.copy(id = id))) insertAll (UsersRow(3, "takezoe", None), UsersRow(4, "mrfyda", None))
       assert(u.map(_.id) == List(3, 4))
-      assert(Users.length.run == 4)
+      assert(transactor.use { xa =>
+        Users.doobieQuery.to[List].map(_.length).transact(xa)
+      }.unsafeRunSync == 4)
     }
   }
 
   test("insert insertOrUpdate") {
     db.withSession { implicit session =>
-      Tables.schema.create
+      import doobie.implicits._
+      //Tables.schema.create
+
+      transactor.use { xa =>
+        Tables.schema.doobieCreate.transact(xa)
+      }.unsafeRunSync
 
       Users.insertOrUpdate(UsersRow(1, "takezoe", None))
-      assert(Users.length.run == 1)
+      assert(transactor.use { xa =>
+        Users.doobieQuery.to[List].map(_.length).transact(xa)
+      }.unsafeRunSync == 1)
       Users.insertOrUpdate(UsersRow(1, "joao", None))
-      assert(Users.length.run == 1)
+      assert(transactor.use { xa =>
+        Users.doobieQuery.to[List].map(_.length).transact(xa)
+      }.unsafeRunSync == 1)
     }
   }
 
@@ -278,7 +378,12 @@ class SlickBlockingAPISpec extends FunSuite {
     , existsUser: Long => Session => Boolean
   ) = {
     db.withSession { implicit session =>
-      Tables.schema.create
+      //Tables.schema.create
+      import doobie.implicits._
+
+      transactor.use { xa =>
+        Tables.schema.doobieCreate.transact(xa)
+      }.unsafeRunSync
 
       { // rollback
         session.withTransaction {
@@ -332,7 +437,12 @@ class SlickBlockingAPISpec extends FunSuite {
 
   test("MTable support") {
     db.withSession { implicit session =>
-      Tables.schema.create
+      //Tables.schema.create
+      import doobie.implicits._
+
+      transactor.use { xa =>
+        Tables.schema.doobieCreate.transact(xa)
+      }.unsafeRunSync
 
       assert(MTable.getTables.list.length == 2)
     }
@@ -357,9 +467,13 @@ class SlickBlockingAPISpec extends FunSuite {
   private def testTransactionWithSelectForUpdate(selectForUpdate: Session => Seq[Long]) = {
     import scala.concurrent.ExecutionContext.Implicits.global
     db.withSession { implicit session =>
-      Tables.schema.create
+      //Tables.schema.create
 
       import doobie.implicits._
+
+      transactor.use { xa =>
+        Tables.schema.doobieCreate.transact(xa)
+      }.unsafeRunSync
 
       val insert = Users.doobieInsert
 
@@ -398,21 +512,29 @@ class SlickBlockingAPISpec extends FunSuite {
     val insert = Users.doobieInsert
 
     db.withSession { implicit session =>
-      Tables.schema.create
+      //Tables.schema.create
+
+      transactor.use { xa =>
+        Tables.schema.doobieCreate.transact(xa)
+      }.unsafeRunSync
 
       val compiled = Compiled { i: Rep[Long] =>
         Users.filter(_.id === i)
       }
-      assert(compiled(1L).run.length === 0)
+      assert(transactor.use { xa =>
+        compiled(1L).doobieQuery.to[List].map(_.length).transact(xa)
+      }.unsafeRunSync === 0)
 
       // Insert
-      val insertCompiled = Users.insertInvoker
+      //val insertCompiled = Users.insertInvoker
 
       transactor.use { xa =>
         insert.run(UsersRow(1, "takezoe", None)).transact(xa)
       }.unsafeRunSync: Int
 
-      assert(compiled(1L).run.length === 1)
+      assert(transactor.use { xa =>
+        compiled(1L).doobieQuery.to[List].map(_.length).transact(xa)
+      }.unsafeRunSync === 1)
 
       //update
       val compiledUpdate = Compiled { n: Rep[String] =>
@@ -423,14 +545,23 @@ class SlickBlockingAPISpec extends FunSuite {
       //delete
       compiledUpdate("João").delete
 
-      assert(compiled(1L).run.length === 0)
+      assert(transactor.use { xa =>
+        compiled(1L).doobieQuery.to[List].map(_.length).transact(xa)
+      }.unsafeRunSync === 0)
     }
   }
 
   test("Plain SQL chained together") {
-    db.withSession { implicit session =>
-      Tables.schema.create
+    db.withSession { implicit session => //Tables.schema.create
       implicit val ctx = ExecutionContext.global
+
+      {
+        import doobie.implicits._
+
+        transactor.use { xa =>
+          Tables.schema.doobieCreate.transact(xa)
+        }.unsafeRunSync
+      }
 
       // plain sql
       val id1   = 1
@@ -458,7 +589,12 @@ class SlickBlockingAPISpec extends FunSuite {
       val count2 = query.run
       assert(count2 == (2, 3))
 
-      Tables.schema.remove
+      //Tables.schema.remove
+      import doobie.implicits._
+
+      transactor.use { xa =>
+        Tables.schema.doobieDrop.transact(xa)
+      }.unsafeRunSync
     }
   }
 }

@@ -59,26 +59,40 @@ trait BlockingJdbcProfile extends JdbcProfile with BlockingRelationalProfile {
       * Extends DDL to add methods to create and drop tables immediately.
       */
     implicit class DDLInvoker(schema: DDL) {
-      def create(implicit s: JdbcBackend#Session): Unit = {
+      /*def create(implicit s: JdbcBackend#Session): Unit = {
         createSchemaActionExtensionMethods(schema).create
           .asInstanceOf[SynchronousDatabaseAction[Unit, NoStream, Backend, Effect]]
           .run(new BlockingJdbcActionContext(s))
-      }
+      }*/
 
-      def remove(implicit s: JdbcBackend#Session): Unit = {
+      def doobieCreate: ConnectionIO[Int] =
+        Traverse[Vector]
+          .sequence(schema.createStatements.toVector.map { sql =>
+            Fragment(sql, ()).update.run
+          })
+          .map(_.sum)
+
+      def doobieDrop: ConnectionIO[Int] = Traverse[Vector]
+        .sequence(schema.dropStatements.toVector.map { sql =>
+          Fragment(sql, ()).update.run
+        })
+        .map(_.sum)
+
+      /*def remove(implicit s: JdbcBackend#Session): Unit = {
         createSchemaActionExtensionMethods(schema).drop
           .asInstanceOf[SynchronousDatabaseAction[Unit, NoStream, Backend, Effect]]
           .run(new BlockingJdbcActionContext(s))
-      }
+      }*/
     }
 
     implicit class RepQueryExecutor[E](rep: Rep[E]) {
       private val invoker = new QueryInvoker[E](queryCompiler.run(Query(rep)(slick.lifted.RepShape).toNode).tree, ())
 
-      def run(implicit s: JdbcBackend#Session): E = invoker.first
+      //def run(implicit s: JdbcBackend#Session): E = invoker.first
+      def doobieQuery = invoker.doobieQuery
       def selectStatement: String                 = invoker.selectStatement
     }
-    implicit class QueryExecutor[U, C[_]](q: Query[_, U, C]) {
+    /*implicit class QueryExecutor[U, C[_]](q: Query[_, U, C]) {
       private val invoker = new QueryInvoker[U](queryCompiler.run(q.toNode).tree, ())
 
       def run(implicit s: JdbcBackend#Session): Seq[U] = invoker.results(0).right.get.toSeq
@@ -90,7 +104,7 @@ trait BlockingJdbcProfile extends JdbcProfile with BlockingRelationalProfile {
 
       def run(implicit s: JdbcBackend#Session): Seq[U] = invoker.invoker.results(0).right.get.toSeq
       def selectStatement: String                      = invoker.selectStatement
-    }
+    }*/
 
     /**
       * Extends QueryInvokerImpl to add selectStatement method.
@@ -202,7 +216,7 @@ trait BlockingJdbcProfile extends JdbcProfile with BlockingRelationalProfile {
           .run(new BlockingJdbcActionContext(s))
       }*/
 
-      def ++=(values: Iterable[U])(implicit s: JdbcBackend#Session): Int = insertAll(values.toSeq: _*)
+      /*def ++=(values: Iterable[U])(implicit s: JdbcBackend#Session): Int = insertAll(values.toSeq: _*)
 
       def insertAll(values: U*)(implicit s: JdbcBackend#Session): Int = {
         createInsertActionExtensionMethods(compiled)
@@ -210,7 +224,7 @@ trait BlockingJdbcProfile extends JdbcProfile with BlockingRelationalProfile {
           .asInstanceOf[SynchronousDatabaseAction[Option[Int], NoStream, JdbcBackend, Effect]]
           .run(new BlockingJdbcActionContext(s))
           .getOrElse(0)
-      }
+      }*/
 
       def insertOrUpdate(value: U)(implicit s: JdbcBackend#Session): Int = {
         createInsertActionExtensionMethods(compiled)
