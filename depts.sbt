@@ -1,4 +1,4 @@
-val doobieVersion = "0.6.0"
+val doobieVersion = "0.8.8"
 
 libraryDependencies ++= Seq(
     // Start with this one
@@ -13,8 +13,8 @@ libraryDependencies ++= Seq(
 )
 
 libraryDependencies ++= Seq(
-    "com.typesafe.slick" %% "slick"          % "3.2.3"
-  , "com.typesafe.slick" %% "slick-hikaricp" % "3.2.3"
+    "com.typesafe.slick" %% "slick"          % "3.3.2"
+  , "com.typesafe.slick" %% "slick-hikaricp" % "3.3.2"
   , "com.h2database"     % "h2"              % "1.4.197"
 )
 
