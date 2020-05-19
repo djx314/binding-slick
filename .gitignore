@@ -1,9 +1,12 @@
+*target
+*/.idea
 /.idea
 /logs
-/conf/evolutions
-/bin/
+_site
 /sbt
 /sbt.bat
 /sbt-launch.jar
-/conf/generated.keystore
-*target*
+/null
+/.dotty-ide.json
+/.dotty-ide-artifact
+/credentials
