@@ -1,7 +1,35 @@
-libraryDependencies ++= Seq(
-    "com.typesafe.slick" %% "slick"          % "3.3.2"
-  , "com.typesafe.slick" %% "slick-hikaricp" % "3.3.2"
-  , "com.h2database"     % "h2"              % "1.4.197"
-)
+package org.scalax.bindin.slick
 
-libraryDependencies ++= Seq("org.slf4j" % "slf4j-simple" % "1.7.25")
+import slick.jdbc.JdbcProfile
+
+trait QuoteIdentifier {
+  def quoteIdentifier(name: String): String
+}
+
+object SlickQuoteIdentifierHelper {
+
+  def helper(implicit profile: JdbcProfile): QuoteIdentifier = new QuoteIdentifier {
+    override def quoteIdentifier(name: String): String = profile.quoteIdentifier(name)
+  }
+
+}
+
+trait DBProfile {
+
+  def quoteIdentifier: QuoteIdentifier
+
+}
+
+trait MysqlDBProfile extends DBProfile {
+
+  import slick.jdbc.MySQLProfile.api._
+
+  override def quoteIdentifier: QuoteIdentifier = SlickQuoteIdentifierHelper.helper
+
+}
+
+object MysqlDBProfile extends MysqlDBProfile {
+
+  override val quoteIdentifier: QuoteIdentifier = super.quoteIdentifier
+
+}
