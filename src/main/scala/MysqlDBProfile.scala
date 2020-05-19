@@ -11,13 +11,15 @@ trait MysqlDBProfile extends DBProfile {
   override def bindCreateQueryBuilder(n: Node, state: CompilerState): BindQueryBuilder = BindQueryBuilderHelper.helper(state)
   override def bindCapabilities: BindCapabilities                                      = BindCapabilitiesHelper.helper
   override def bindJdbcModelComponent: BindJdbcModelComponent                          = BindJdbcModelComponentHelper.helper
+  override def bindImplicitColumnTypes: BindImplicitColumnTypes                        = BindImplicitColumnTypesHelper.helper
 
 }
 
 object MysqlDBProfile extends MysqlDBProfile {
 
-  override val bindSqlUtilsComponent: BindSqlUtilsComponent   = super.bindSqlUtilsComponent
-  override val bindCapabilities: BindCapabilities             = super.bindCapabilities
-  override val bindJdbcModelComponent: BindJdbcModelComponent = super.bindJdbcModelComponent
+  override val bindSqlUtilsComponent: BindSqlUtilsComponent     = super.bindSqlUtilsComponent
+  override val bindCapabilities: BindCapabilities               = super.bindCapabilities
+  override val bindJdbcModelComponent: BindJdbcModelComponent   = super.bindJdbcModelComponent
+  override val bindImplicitColumnTypes: BindImplicitColumnTypes = super.bindImplicitColumnTypes
 
 }

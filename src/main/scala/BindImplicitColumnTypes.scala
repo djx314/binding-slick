@@ -1,26 +1,23 @@
 package org.scalax.bindin.slick
 
-import slick.ast.NumericTypedType
-import slick.jdbc.JdbcProfile
+import slick.ast.{BaseTypedType, NumericTypedType}
+import slick.jdbc.JdbcType
 import slick.lifted.Isomorphism
 
 import scala.reflect.ClassTag
 
 trait BindImplicitColumnTypes {
 
-  val profile: JdbcProfile
-
-  implicit def isomorphicType[A, B](implicit iso: Isomorphism[A, B], ct: ClassTag[A], jt: profile.BaseColumnType[B]): profile.BaseColumnType[A] =
-    profile.MappedColumnType.base[A, B](iso.map, iso.comap)
-  implicit def booleanColumnType: profile.BaseColumnType[Boolean]                             = profile.api.booleanColumnType
-  implicit def bigDecimalColumnType: profile.BaseColumnType[BigDecimal] with NumericTypedType = profile.api.bigDecimalColumnType
-  implicit def byteColumnType: profile.BaseColumnType[Byte] with NumericTypedType             = profile.api.byteColumnType
-  implicit def charColumnType: profile.BaseColumnType[Char]                                   = profile.api.charColumnType
-  implicit def doubleColumnType: profile.BaseColumnType[Double] with NumericTypedType         = profile.api.doubleColumnType
-  implicit def floatColumnType: profile.BaseColumnType[Float] with NumericTypedType           = profile.api.floatColumnType
-  implicit def intColumnType: profile.BaseColumnType[Int] with NumericTypedType               = profile.api.intColumnType
-  implicit def longColumnType: profile.BaseColumnType[Long] with NumericTypedType             = profile.api.longColumnType
-  implicit def shortColumnType: profile.BaseColumnType[Short] with NumericTypedType           = profile.api.shortColumnType
-  implicit def stringColumnType: profile.BaseColumnType[String]                               = profile.api.stringColumnType
+  implicit def isomorphicType[A, B](implicit iso: Isomorphism[A, B], ct: ClassTag[A], jt: JdbcType[B] with BaseTypedType[B]): JdbcType[A] with BaseTypedType[A]
+  implicit def booleanColumnType: JdbcType[Boolean] with BaseTypedType[Boolean]
+  implicit def bigDecimalColumnType: JdbcType[BigDecimal] with BaseTypedType[BigDecimal] with NumericTypedType
+  implicit def byteColumnType: JdbcType[Byte] with BaseTypedType[Byte] with NumericTypedType
+  implicit def charColumnType: JdbcType[Char] with BaseTypedType[Char]
+  implicit def doubleColumnType: JdbcType[Double] with BaseTypedType[Double] with NumericTypedType
+  implicit def floatColumnType: JdbcType[Float] with BaseTypedType[Float] with NumericTypedType
+  implicit def intColumnType: JdbcType[Int] with BaseTypedType[Int] with NumericTypedType
+  implicit def longColumnType: JdbcType[Long] with BaseTypedType[Long] with NumericTypedType
+  implicit def shortColumnType: JdbcType[Short] with BaseTypedType[Short] with NumericTypedType
+  implicit def stringColumnType: JdbcType[String] with BaseTypedType[String]
 
 }

@@ -9,5 +9,6 @@ trait DBProfile {
   def bindCreateQueryBuilder(n: Node, state: CompilerState): BindQueryBuilder
   def bindCapabilities: BindCapabilities
   def bindJdbcModelComponent: BindJdbcModelComponent
+  def bindImplicitColumnTypes: BindImplicitColumnTypes
 
 }
