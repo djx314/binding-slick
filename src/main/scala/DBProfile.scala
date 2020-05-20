@@ -10,5 +10,7 @@ trait DBProfile {
   def bindCapabilities: BindCapabilities
   def bindJdbcModelComponent: BindJdbcModelComponent
   def bindImplicitColumnTypes: BindImplicitColumnTypes
+  def bindJdbcImplicitColumnTypes: BindJdbcImplicitColumnTypes
+  def bindJdbcTypes: BindJdbcTypes
 
 }

@@ -1,0 +1,3 @@
+package org.scalax.binding.slick
+
+trait BindJdbcImplicitColumnTypes extends BindJdbcImplicitColumnAbs with IsomorphicTypeImplicitFetch

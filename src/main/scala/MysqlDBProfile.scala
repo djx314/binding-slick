@@ -12,14 +12,18 @@ trait MysqlDBProfile extends DBProfile {
   override def bindCapabilities: BindCapabilities                                      = BindCapabilitiesHelper.helper
   override def bindJdbcModelComponent: BindJdbcModelComponent                          = BindJdbcModelComponentHelper.helper
   override def bindImplicitColumnTypes: BindImplicitColumnTypes                        = BindImplicitColumnTypesHelper.helper
+  override def bindJdbcImplicitColumnTypes: BindJdbcImplicitColumnTypes                = BindJdbcImplicitColumnTypesHelper.helper
+  override def bindJdbcTypes: BindJdbcTypes                                            = BindJdbcTypesHelper.helper
 
 }
 
 object MysqlDBProfile extends MysqlDBProfile {
 
-  override val bindSqlUtilsComponent: BindSqlUtilsComponent     = super.bindSqlUtilsComponent
-  override val bindCapabilities: BindCapabilities               = super.bindCapabilities
-  override val bindJdbcModelComponent: BindJdbcModelComponent   = super.bindJdbcModelComponent
-  override val bindImplicitColumnTypes: BindImplicitColumnTypes = super.bindImplicitColumnTypes
+  override val bindSqlUtilsComponent: BindSqlUtilsComponent             = super.bindSqlUtilsComponent
+  override val bindCapabilities: BindCapabilities                       = super.bindCapabilities
+  override val bindJdbcModelComponent: BindJdbcModelComponent           = super.bindJdbcModelComponent
+  override val bindImplicitColumnTypes: BindImplicitColumnTypes         = super.bindImplicitColumnTypes
+  override val bindJdbcImplicitColumnTypes: BindJdbcImplicitColumnTypes = super.bindJdbcImplicitColumnTypes
+  override val bindJdbcTypes: BindJdbcTypes                             = super.bindJdbcTypes
 
 }

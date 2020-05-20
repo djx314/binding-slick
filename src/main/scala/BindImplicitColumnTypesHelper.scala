@@ -21,7 +21,7 @@ object BindImplicitColumnTypesHelper {
     shortColumnType1: JdbcType[Short] with BaseTypedType[Short] with NumericTypedType,
     stringColumnType1: JdbcType[String] with BaseTypedType[String]
   ): BindImplicitColumnTypes = new BindImplicitColumnTypes {
-    override implicit def isomorphicType[A, B](
+    override implicit def isomorphicTypeImplicit[A, B](
       implicit iso: Isomorphism[A, B],
       ct: ClassTag[A],
       jt: JdbcType[B] with BaseTypedType[B]
