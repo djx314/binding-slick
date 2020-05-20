@@ -1,4 +1,4 @@
-package org.scalax.bindin.slick
+package org.scalax.binding.slick
 
 import slick.basic.Capability
 

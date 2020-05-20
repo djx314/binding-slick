@@ -1,7 +1,7 @@
-package org.scalax.bindin.slick
+package org.scalax.binding.slick
 
 import slick.ast.{BaseTypedType, NumericTypedType}
-import slick.jdbc.{JdbcProfile, JdbcType}
+import slick.jdbc.JdbcType
 import slick.lifted.Isomorphism
 
 import scala.reflect.ClassTag
@@ -9,7 +9,7 @@ import scala.reflect.ClassTag
 object BindImplicitColumnTypesHelper {
 
   def helper(
-    implicit profile: JdbcProfile,
+    implicit isomorphicTypeImplicitFetch: IsomorphicTypeImplicitFetch,
     booleanColumnType1: JdbcType[Boolean] with BaseTypedType[Boolean],
     bigDecimalColumnType1: JdbcType[BigDecimal] with BaseTypedType[BigDecimal] with NumericTypedType,
     byteColumnType1: JdbcType[Byte] with BaseTypedType[Byte] with NumericTypedType,
@@ -25,8 +25,7 @@ object BindImplicitColumnTypesHelper {
       implicit iso: Isomorphism[A, B],
       ct: ClassTag[A],
       jt: JdbcType[B] with BaseTypedType[B]
-    ): JdbcType[A] with BaseTypedType[A] =
-      profile.MappedColumnType.base[A, B](iso.map, iso.comap)
+    ): JdbcType[A] with BaseTypedType[A]                                                                                  = isomorphicTypeImplicitFetch.isomorphicTypeImplicit(iso, ct, jt)
     override implicit def booleanColumnType: JdbcType[Boolean] with BaseTypedType[Boolean]                                = booleanColumnType1
     override implicit def bigDecimalColumnType: JdbcType[BigDecimal] with BaseTypedType[BigDecimal] with NumericTypedType = bigDecimalColumnType1
     override implicit def byteColumnType: JdbcType[Byte] with BaseTypedType[Byte] with NumericTypedType                   = byteColumnType1
