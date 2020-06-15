@@ -8,10 +8,10 @@ import scala.language.experimental.macros
 import scala.reflect.ClassTag
 
 trait IsomorphicTypeImplicitFetch {
-  def isomorphicTypeImplicit[A, B](implicit iso: Isomorphism[A, B], ct: ClassTag[A], jt: JdbcType[B] with BaseTypedType[B]): JdbcType[A] with BaseTypedType[A]
+  implicit def isomorphicTypeBinding[A, B](implicit iso: Isomorphism[A, B], ct: ClassTag[A], jt: JdbcType[B] with BaseTypedType[B]): JdbcType[A] with BaseTypedType[A]
 }
 
-object IsomorphicTypeImplicitFetch {
+/*object IsomorphicTypeImplicitFetch {
   implicit def isomorphicTypeImplicitFetchImplicit: IsomorphicTypeImplicitFetch = macro IsomorphicTypeImplicitFetchMacroApply.macroApply
 
   class IsomorphicTypeImplicitFetchMacroApply(val c: scala.reflect.macros.blackbox.Context) {
@@ -28,4 +28,4 @@ object IsomorphicTypeImplicitFetch {
       }
     }
   }
-}
+}*/

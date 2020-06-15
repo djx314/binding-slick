@@ -10,8 +10,10 @@ trait DBProfile {
   def bindCapabilities: BindCapabilities
   def bindJdbcModelComponent: BindJdbcModelComponent
   def bindImplicitColumnTypes: BindImplicitColumnTypes
-  def bindJdbcImplicitColumnTypes: BindJdbcImplicitColumnTypes
+  // def bindJdbcImplicitColumnTypes: BindJdbcImplicitColumnTypes
   def bindJdbcTypes: BindJdbcTypes
   def bindDeleteOrUpdateActionExtensionMethods: BindDeleteOrUpdateActionExtensionMethods
+  // def bindJdbcActionExtensionMethods: BindJdbcActionExtensionMethods
+  // def bindActionBasedSQLInterpolation: BindActionBasedSQLInterpolation
 
 }

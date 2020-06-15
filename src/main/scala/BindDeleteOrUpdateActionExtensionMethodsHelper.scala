@@ -22,6 +22,11 @@ object BindDeleteOrUpdateActionExtensionMethodsHelper {
       }
       override def runnableCompiledUpdateSql[RU, C[_]](c: RunnableCompiled[_ <: Query[_, _, C], C[RU]]): String =
         profile.api.runnableCompiledUpdateActionExtensionMethods(c).updateStatement
+      override def queryUpdate[U, C[_]](c: Query[_, U, C]): U => FixedSqlAction[Int, NoStream, Effect.Write] = {
+        val i = profile.api.queryUpdateActionExtensionMethods(c)
+        data => i.update(data)
+      }
+      override def queryUpdateSql[U, C[_]](c: Query[_, U, C]): String = profile.api.queryUpdateActionExtensionMethods(c).updateStatement
     }
   }
 
