@@ -4,6 +4,8 @@ scalaVersion := "2.13.2"
 
 transitiveClassifiers in ThisBuild := Seq("sources", "jar")
 
+addCommandAlias("fmt", ";all scalafmtSbt;all scalafmt;all test:scalafmt")
+
 scalafmtOnCompile := true
 
 val macros  = (project in file(".") / "modules" / "macros")
