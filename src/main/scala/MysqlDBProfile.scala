@@ -12,9 +12,9 @@ trait MysqlDBProfile extends DBProfile {
   override def bindCapabilities: BindCapabilities                                      = BindCapabilitiesHelper.helper
   override def bindJdbcModelComponent: BindJdbcModelComponent                          = BindJdbcModelComponentHelper.helper
   override def bindImplicitColumnTypes: BindImplicitColumnTypes                        = BindImplicitColumnTypesHelper.helper
-  type BindingAPI = BindJdbcImplicitColumnTypes with BindDeleteOrUpdateActionExtensionMethods
+  type BindingAPI = BindJdbcImplicitColumnTypes with BindDeleteOrUpdateActionExtensionMethods with BindColumnExtensionMethods
   val api: BindingAPI = new BindJdbcImplicitColumnTypesHelper.BindJdbcImplicitColumnTypesImpl
-  with BindDeleteOrUpdateActionExtensionMethodsHelper.BindDeleteOrUpdateActionExtensionMethodsImpl {
+  with BindDeleteOrUpdateActionExtensionMethodsHelper.BindDeleteOrUpdateActionExtensionMethodsImpl with BindColumnExtensionMethodsHelper.BindColumnExtensionMethodsImpl {
     override val profile = implicitly
   }
   /*override def bindJdbcImplicitColumnTypes: BindJdbcImplicitColumnTypes = new BindJdbcImplicitColumnTypesHelper.BindJdbcImplicitColumnTypesImpl {
