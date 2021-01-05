@@ -14,8 +14,10 @@ trait BindColumnExtensionMethods {
     q: Query[T, U, Seq] with TableQuery[T]
   ): BindColumnExtensionMethods.TableQueryExtensionMethods[T, U]
 
-  /*implicit def streamableCompiledInsertActionExtensionMethods[EU](c: StreamableCompiled[_, _, EU]): InsertActionExtensionMethods[EU] = createInsertActionExtensionMethods[EU](c.compiledInsert.asInstanceOf[CompiledInsert])
-  implicit def queryInsertActionExtensionMethods[U, C[_]](q: Query[_, U, C]): InsertActionExtensionMethods[U] = createInsertActionExtensionMethods[U](compileInsert(q.toNode))
+  /*implicit def streamableCompiledInsertActionExtensionMethods[EU](c: StreamableCompiled[_, _, EU]): BindColumnExtensionMethods.InsertActionExtensionMethods[EU] =
+    createInsertActionExtensionMethods[EU](c.compiledInsert.asInstanceOf[CompiledInsert])
+  implicit def queryInsertActionExtensionMethods[U, C[_]](q: Query[_, U, C]): BindColumnExtensionMethods.InsertActionExtensionMethods[U] =
+    createInsertActionExtensionMethods[U](compileInsert(q.toNode))
 
   implicit def schemaActionExtensionMethods(sd: SchemaDescription): SchemaActionExtensionMethods = createSchemaActionExtensionMethods(sd)
 
@@ -31,4 +33,5 @@ object BindColumnExtensionMethods {
       pshape: Shape[ColumnsShapeLevel, P, P, _]
     ): CompiledFunction[Rep[P] => Query[T, U, Seq], Rep[P], P, Query[T, U, Seq], Seq[U]]
   }
+
 }
