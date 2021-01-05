@@ -12,16 +12,16 @@ trait MysqlDBProfile extends DBProfile {
   override def bindCapabilities: BindCapabilities                                      = BindCapabilitiesHelper.helper
   override def bindJdbcModelComponent: BindJdbcModelComponent                          = BindJdbcModelComponentHelper.helper
   override def bindImplicitColumnTypes: BindImplicitColumnTypes                        = BindImplicitColumnTypesHelper.helper
-  type BindingAPI = BindActionBasedSQLInterpolation with BindJdbcImplicitColumnTypes with BindJdbcActionExtensionMethods
-  val api: BindingAPI = new BindJdbcImplicitColumnTypesHelper.BindJdbcImplicitColumnTypesImpl with BindJdbcActionExtensionMethodsHelper.BindJdbcActionExtensionMethodsImpl
-  with BindActionBasedSQLInterpolation {
+  type BindingAPI = BindJdbcImplicitColumnTypes with BindDeleteOrUpdateActionExtensionMethods
+  val api: BindingAPI = new BindJdbcImplicitColumnTypesHelper.BindJdbcImplicitColumnTypesImpl
+  with BindDeleteOrUpdateActionExtensionMethodsHelper.BindDeleteOrUpdateActionExtensionMethodsImpl {
     override val profile = implicitly
   }
   /*override def bindJdbcImplicitColumnTypes: BindJdbcImplicitColumnTypes = new BindJdbcImplicitColumnTypesHelper.BindJdbcImplicitColumnTypesImpl {
     override val profile = implicitly
   }*/
-  override def bindJdbcTypes: BindJdbcTypes                                                       = BindJdbcTypesHelper.helper
-  override def bindDeleteOrUpdateActionExtensionMethods: BindDeleteOrUpdateActionExtensionMethods = BindDeleteOrUpdateActionExtensionMethodsHelper.helper
+  override def bindJdbcTypes: BindJdbcTypes = BindJdbcTypesHelper.helper
+  // override def bindDeleteOrUpdateActionExtensionMethods: BindDeleteOrUpdateActionExtensionMethods = BindDeleteOrUpdateActionExtensionMethodsHelper.helper
   /*override def bindJdbcActionExtensionMethods: BindJdbcActionExtensionMethods = new BindJdbcActionExtensionMethodsHelper.BindJdbcActionExtensionMethodsImpl {
     override val profile = implicitly
   }*/
@@ -36,8 +36,8 @@ object MysqlDBProfile extends MysqlDBProfile {
   override val bindJdbcModelComponent: BindJdbcModelComponent   = super.bindJdbcModelComponent
   override val bindImplicitColumnTypes: BindImplicitColumnTypes = super.bindImplicitColumnTypes
   // override val bindJdbcImplicitColumnTypes: BindJdbcImplicitColumnTypes                           = super.bindJdbcImplicitColumnTypes
-  override val bindJdbcTypes: BindJdbcTypes                                                       = super.bindJdbcTypes
-  override val bindDeleteOrUpdateActionExtensionMethods: BindDeleteOrUpdateActionExtensionMethods = super.bindDeleteOrUpdateActionExtensionMethods
+  override val bindJdbcTypes: BindJdbcTypes = super.bindJdbcTypes
+  // override val bindDeleteOrUpdateActionExtensionMethods: BindDeleteOrUpdateActionExtensionMethods = super.bindDeleteOrUpdateActionExtensionMethods
   // override val bindJdbcActionExtensionMethods: BindJdbcActionExtensionMethods                     = super.bindJdbcActionExtensionMethods
   // override val bindActionBasedSQLInterpolation: BindActionBasedSQLInterpolation                   = super.bindActionBasedSQLInterpolation
 

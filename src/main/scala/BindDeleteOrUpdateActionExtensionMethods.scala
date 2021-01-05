@@ -1,23 +1,61 @@
 package org.scalax.binding.slick
 
-import slick.dbio.{Effect, NoStream}
+import slick.dbio.{DBIOAction, Effect, NoStream}
+import slick.jdbc.{ActionBasedSQLInterpolation, ResultSetConcurrency, ResultSetHoldability, ResultSetType, TransactionIsolation}
 import slick.lifted.{Query, RunnableCompiled}
 import slick.relational.RelationalProfile
 import slick.sql.FixedSqlAction
 
-trait BindDeleteOrUpdateActionExtensionMethods {
+import java.sql.Statement
 
-  def queryDeleteActionExtensionMethodsImpl[C[_]](
+trait BindDeleteOrUpdateActionExtensionMethods extends BindDeleteOrUpdateActionExtensionMethods.LowPriorityAPI {
+
+  implicit def queryDeleteActionExtensionMethods[C[_]](
     q: slick.lifted.Query[_ <: RelationalProfile#Table[_], _, C]
-  ): FixedSqlAction[Int, NoStream, Effect.Write]
-  def runnableCompiledDeleteActionExtensionMethodsImpl[RU, C[_]](
+  ): BindDeleteOrUpdateActionExtensionMethods.DeleteActionExtensionMethods
+  implicit def runnableCompiledDeleteActionExtensionMethods[RU, C[_]](
     c: slick.lifted.RunnableCompiled[_ <: Query[_, _, C], C[RU]]
-  ): FixedSqlAction[Int, NoStream, Effect.Write]
+  ): BindDeleteOrUpdateActionExtensionMethods.DeleteActionExtensionMethods
 
-  def runnableCompiledUpdate[RU, C[_]](c: RunnableCompiled[_ <: Query[_, _, C], C[RU]]): RU => FixedSqlAction[Int, NoStream, Effect.Write]
-  def runnableCompiledUpdateSql[RU, C[_]](c: RunnableCompiled[_ <: Query[_, _, C], C[RU]]): String
+  implicit def runnableCompiledUpdateActionExtensionMethods[RU, C[_]](
+    c: RunnableCompiled[_ <: Query[_, _, C], C[RU]]
+  ): BindDeleteOrUpdateActionExtensionMethods.UpdateActionExtensionMethods[RU]
 
-  def queryUpdate[U, C[_]](c: Query[_, U, C]): U => FixedSqlAction[Int, NoStream, Effect.Write]
-  def queryUpdateSql[U, C[_]](c: Query[_, U, C]): String
+  implicit def jdbcActionExtensionMethods[E <: Effect, R, S <: NoStream](
+    a: DBIOAction[R, S, E]
+  ): BindDeleteOrUpdateActionExtensionMethods.BindJdbcActionContent[E, R, S]
+
+  implicit def actionBasedSQLInterpolation(s: StringContext): ActionBasedSQLInterpolation
+
+}
+
+object BindDeleteOrUpdateActionExtensionMethods {
+
+  trait LowPriorityAPI {
+    implicit def queryUpdateActionExtensionMethods[U, C[_]](c: Query[_, U, C]): BindDeleteOrUpdateActionExtensionMethods.UpdateActionExtensionMethods[U]
+  }
+
+  trait DeleteActionExtensionMethods {
+    def delete: FixedSqlAction[Int, NoStream, Effect.Write]
+  }
+
+  trait UpdateActionExtensionMethods[A] {
+    def update(a: A): FixedSqlAction[Int, NoStream, Effect.Write]
+    def updateStatement: String
+  }
+
+  trait BindJdbcActionContent[E <: Effect, R, S <: NoStream] {
+
+    def transactionally: DBIOAction[R, S, E with Effect.Transactional]
+    def withTransactionIsolation(ti: TransactionIsolation): DBIOAction[R, S, E]
+    def withStatementParameters(
+      rsType: ResultSetType = null,
+      rsConcurrency: ResultSetConcurrency = null,
+      rsHoldability: ResultSetHoldability = null,
+      statementInit: Statement => Unit = null,
+      fetchSize: Int = 0
+    ): DBIOAction[R, S, E]
+
+  }
 
 }

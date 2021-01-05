@@ -12,7 +12,7 @@ trait DBProfile {
   def bindImplicitColumnTypes: BindImplicitColumnTypes
   // def bindJdbcImplicitColumnTypes: BindJdbcImplicitColumnTypes
   def bindJdbcTypes: BindJdbcTypes
-  def bindDeleteOrUpdateActionExtensionMethods: BindDeleteOrUpdateActionExtensionMethods
+  // def bindDeleteOrUpdateActionExtensionMethods: BindDeleteOrUpdateActionExtensionMethods
   // def bindJdbcActionExtensionMethods: BindJdbcActionExtensionMethods
   // def bindActionBasedSQLInterpolation: BindActionBasedSQLInterpolation
 
